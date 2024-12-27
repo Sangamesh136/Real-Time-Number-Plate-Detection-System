@@ -1,12 +1,24 @@
 import cv2
 from ultralytics import YOLO
 from speed import SpeedEstimator
-from test_NPD import LicensePlateDetector
+from test_gpu import LicensePlateDetector
 import os
+
+# import firebase_admin
+# from firebase_admin import credentials
+# from firebase_admin import firestore
+import torch
+import torchvision
+# cred = credentials.Certificate("C:Users/sanga/Downloads/fireCreds.json")
+# firebase_admin.initialize_app(cred)
+# db = firestore.client()
+
 
 # Load YOLOv8 model
 model = YOLO("yolov10n.pt")
-
+if torch.cuda.is_available():
+    model = model.to('cuda')
+    print("Model loaded to GPU.")   
 # Initialize global variable to store cursor coordinates
 line_pts = [(0, 415), (1019, 415)]  # Set to 83% of the screen height (500 pixels * 0.83)
 names = model.model.names  # This is a dictionary
@@ -33,7 +45,7 @@ cv2.setMouseCallback('RGB', RGB)
 
 # Open the video file or webcam feed
 # cap = cv2.VideoCapture('../SampleVideos/SampleReal4.mp4')
-cap = cv2.VideoCapture("C:/Users/sanga/Downloads/Phone_link/_test.mp4")
+cap = cv2.VideoCapture("C:/Users/sanga/Downloads/Phone_link/_test3.mp4")
 # Ensure that the video is loaded at the maximum resolution
 cap.set(cv2.CAP_PROP_FRAME_WIDTH, 1920)  # Replace 1920 with your video width
 cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 1080)  # Replace 1080 with your video height
@@ -89,7 +101,14 @@ print("Detected license plates:")
 for plate in numberplate_results:
     print(plate)
 
-print('Final Dictionary')
 for i in range(len(numberplate_results)):
     final_dict[numberplate_results[i]] = speed_results[i]
+    # data = {"NumberPlate": numberplate_results[i], "Speed": speed_results[i]}
+    # db.collection("VehicleLicensePlate").add(data)
 print(final_dict)
+# for i in range(len(numberplate_results)):
+#     final_dict[numberplate_results[i]] = speed_results[i]
+#     data={"NumberPlate":numberplate_results[i],"Speed":speed_results[i]}
+# print(final_dict)
+# db.child("VehicleLicensePlate").push(data)
+
