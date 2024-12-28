@@ -3,15 +3,17 @@ from ultralytics import YOLO
 from speed import SpeedEstimator
 from test_gpu import LicensePlateDetector
 import os
-
-# import firebase_admin
-# from firebase_admin import credentials
-# from firebase_admin import firestore
 import torch
 import torchvision
-# cred = credentials.Certificate("C:Users/sanga/Downloads/fireCreds.json")
-# firebase_admin.initialize_app(cred)
-# db = firestore.client()
+from datetime import datetime
+
+
+import firebase_admin
+from firebase_admin import credentials
+from firebase_admin import firestore
+cred = credentials.Certificate("C:Users/sanga/Downloads/fireCreds.json")
+firebase_admin.initialize_app(cred)
+db = firestore.client()
 
 
 # Load YOLOv8 model
@@ -45,6 +47,9 @@ cv2.setMouseCallback('RGB', RGB)
 
 # Open the video file or webcam feed
 # cap = cv2.VideoCapture('../SampleVideos/SampleReal4.mp4')
+timestamp = datetime.now().isoformat()
+timestamps = []
+
 cap = cv2.VideoCapture("C:/Users/sanga/Downloads/Phone_link/_test3.mp4")
 # Ensure that the video is loaded at the maximum resolution
 cap.set(cv2.CAP_PROP_FRAME_WIDTH, 1920)  # Replace 1920 with your video width
@@ -102,9 +107,9 @@ for plate in numberplate_results:
     print(plate)
 
 for i in range(len(numberplate_results)):
-    final_dict[numberplate_results[i]] = speed_results[i]
-    # data = {"NumberPlate": numberplate_results[i], "Speed": speed_results[i]}
-    # db.collection("VehicleLicensePlate").add(data)
+    final_dict[numberplate_results[i]] = [speed_results[i],timestamp]
+    data = {"NumberPlate": numberplate_results[i], "Speed": speed_results[i], "Timestamp": timestamp}
+    db.collection("VehicleLicensePlate").add(data)
 print(final_dict)
 # for i in range(len(numberplate_results)):
 #     final_dict[numberplate_results[i]] = speed_results[i]
