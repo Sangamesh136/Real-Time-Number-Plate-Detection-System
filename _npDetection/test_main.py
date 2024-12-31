@@ -150,15 +150,17 @@ detected_vehicle_numbers = numberplate_results
 get_pnum(detected_vehicle_numbers)
 print("outside function:",pnumber, full_names)
 
-def send_msg(phone_number, full_name):
+def send_msg(phone_number, full_name, vehicle_number):
     message = client.messages.create(
     from_='whatsapp:+14155238886',
-    body='Hello from Twilio!',
+    body= f"Your vehicle ({vehicle_number}) has been detected for speeding. "
+        f"Please check your dashboard for more details and settle pending fines.",
     to='whatsapp:+917975070214'
     )
     return message.sid
-for phone_number, full_name in zip(pnumber, full_names):
-    print(send_msg(phone_number, full_name))
+for phone_number, full_name, vehicle_number in zip(pnumber, full_names, detected_vehicle_numbers):
+    print(send_msg(phone_number, full_name, vehicle_number))
+
 # import logging
 
 # # Create a logger
