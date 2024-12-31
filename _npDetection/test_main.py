@@ -7,10 +7,16 @@ import torch
 import torchvision
 from datetime import datetime
 
-
 import firebase_admin
 from firebase_admin import credentials
 from firebase_admin import firestore
+
+from twilio.rest import Client
+account_sid = 'AC2dec79537f7670dbb88850a65986aa95'
+auth_token = 'a36a491447e018bf84341b8cc7a6d416'
+client = Client(account_sid, auth_token)
+
+
 cred = credentials.Certificate("C:Users/sanga/Downloads/fireCreds.json")
 firebase_admin.initialize_app(cred)
 db = firestore.client()
@@ -104,16 +110,88 @@ for t_id, speeds in speed_obj.all_speeds.items():
 
 print("Detected license plates:")
 for plate in numberplate_results:
-    print(plate)
+    print("seperate number plate", plate)
 
 for i in range(len(numberplate_results)):
     final_dict[numberplate_results[i]] = [speed_results[i],timestamp]
-    data = {"NumberPlate": numberplate_results[i], "Speed": speed_results[i], "Timestamp": timestamp}
+    data = {"NumberPlate": numberplate_results[i], "Speed": speed_results[i], "Timestamp": timestamp, "PaymentStatus": False}
     db.collection("VehicleLicensePlate").add(data)
-print(final_dict)
-# for i in range(len(numberplate_results)):
-#     final_dict[numberplate_results[i]] = speed_results[i]
-#     data={"NumberPlate":numberplate_results[i],"Speed":speed_results[i]}
-# print(final_dict)
-# db.child("VehicleLicensePlate").push(data)
+print( "numberplate and speed", final_dict)
+print()
+pnumber = []
+full_names = []
 
+def get_pnum(vehicle_numbers):
+    try:
+        for vehicle_number in vehicle_numbers:
+          users_ref = db.collection("users")
+          query = users_ref.where("vehicleNumber", "==", vehicle_number)
+          docs = query.stream()
+
+          user_found = False
+          for doc in docs:
+              user_data = doc.to_dict()
+              phone_number = user_data.get("phoneNumber")
+              full_name = user_data.get("fullName")
+
+              if phone_number:
+                  user_found = True
+                  pnumber.append(phone_number)
+                  full_names.append(full_name)
+                #   send_twilio_notification(phone_number, vehicle_number, full_name) 
+                  print("inside function:",phone_number, full_name)       
+          if not user_found:
+              print(f"No user found with the vehicle number: {vehicle_number}")
+    except Exception as e:
+        print(f"Error querying Firestore or notifying user: {e}")
+
+
+detected_vehicle_numbers = numberplate_results
+get_pnum(detected_vehicle_numbers)
+print("outside function:",pnumber, full_names)
+
+def send_msg(phone_number, full_name):
+    message = client.messages.create(
+    from_='whatsapp:+14155238886',
+    body='Hello from Twilio!',
+    to='whatsapp:+917975070214'
+    )
+    return message.sid
+for phone_number, full_name in zip(pnumber, full_names):
+    print(send_msg(phone_number, full_name))
+# import logging
+
+# # Create a logger
+# logger = logging.getLogger(__name__)
+# logger.setLevel(logging.INFO)
+
+# # Create a file handler and a stream handler
+# file_handler = logging.FileHandler('app.log')
+# stream_handler = logging.StreamHandler()
+
+# # Create a formatter and add it to the handlers
+# formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+# file_handler.setFormatter(formatter)
+# stream_handler.setFormatter(formatter)
+
+# # Add the handlers to the logger
+# logger.addHandler(file_handler)
+# logger.addHandler(stream_handler)
+
+# # ...
+
+# # Replace print statements with logger statements
+# logger.info("Model loaded to GPU.")
+# logger.info(f"Mouse coordinates: {cursor_point}")
+# logger.info(f"Detected license plate in {image_name}: {plate_text}")
+# logger.info(f"Deleted {image_name} after processing.")
+# logger.info(f"Error processing {image_name}: {e}")
+# logger.info("All speeds recorded:")
+# logger.info(f"Track ID {t_id}: Speeds = {speeds}")
+# logger.info("Detected license plates:")
+# logger.info("seperate number plate", plate)
+# logger.info("numberplate and speed", final_dict)
+# logger.info(f"No user found with the vehicle number: {vehicle_number}")
+# logger.info(f"Error querying Firestore or notifying user: {e}")
+# logger.info("inside function:", phone_number, full_name)
+# logger.info("outside function:", pnumber, full_names)
