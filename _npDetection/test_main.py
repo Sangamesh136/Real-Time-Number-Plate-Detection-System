@@ -1,7 +1,7 @@
 import cv2
 from ultralytics import YOLO
 from speed import SpeedEstimator
-from test_gpu import LicensePlateDetector
+from test_NPD import LicensePlateDetector
 import os
 import torch
 import torchvision
@@ -58,8 +58,8 @@ timestamps = []
 
 cap = cv2.VideoCapture("C:/Users/sanga/Downloads/Phone_link/_test3.mp4")
 # Ensure that the video is loaded at the maximum resolution
-cap.set(cv2.CAP_PROP_FRAME_WIDTH, 1920)  # Replace 1920 with your video width
-cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 1080)  # Replace 1080 with your video height
+cap.set(cv2.CAP_PROP_FRAME_WIDTH, 7680)  # Replace 1920 with your video width
+cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 4320)  # Replace 1080 with your video height
 
 count = 0
 numberplate_results = []  # List to store detected number plates
